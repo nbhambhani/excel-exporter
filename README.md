@@ -1,3 +1,4 @@
+enter mongo_url, hidden for security purposes
 npm install
 npm start
-Check data excel file created in excel-exporter dir
+Check data.xlsx file created in excel-exporter dir
