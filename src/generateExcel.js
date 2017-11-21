@@ -4,39 +4,67 @@ const mongo_url = '';
 const json2xls = require('json2xls');
 const fs = require('fs');
 const Excel = require('exceljs');
-// Connect to the db
-MongoClient.connect(mongo_url, function (err, db) {
-   
-     db.collection('user', function (err, collection) {
-        
-         collection.find().toArray(function(err, items) {
-            if(err) throw err;    
-            
-            
-            for(var i = 0; i < items.length; i++) {
-            	items[i] = map_interests(items[i]);
-            	items[i] = Object.assign(items[i], items[i]['mapped_interest']);
-            	delete items[i].interests;
-            	delete items[i].mapped_interest;
-            	delete items[i]._id;
-            }
 
-            capitalize_keys(items);
-           
-            for (var i = 0; i < 10; i++) {
-            	console.log(items[i]);
-            }
-            
-            var xls = json2xls( items );
-			fs.writeFileSync('data.xlsx', xls, 'binary');
-                       
-        });
-        
-    });         
-});
+module.exports = {
+	createExcel : function () {
+		MongoClient.connect(mongo_url, function (err, db) {
+			if(err) {
+		    	console.log(err);    
+		    }
+		   
+		     db.collection('user', function (err, collection) {
+		     	if(err) {
+		        	console.log(err);    
+		        }
+		        
+		         collection.find().toArray(function(err, items) {
+		            if(err) {
+		            	console.log(err);    
+		            }
+		            
+		            for(var i = 0; i < items.length; i++) {
+		            	items[i] = mapInterests(items[i]);
+		            	items[i] = Object.assign(items[i], items[i]['mapped_interest']);
+		            	delete items[i].mapped_interest;
+		            }
+
+		            capitalizeKeys(items);
+		           
+		            console.log(items);
+
+		            // Fields to be exported to excel. Specified here to ignore extra fields like Passphrase, etc
+		            const options = {
+		            	fields: {
+		            		Name:'string', 
+		            		Email:'string',
+		            		Country:'string',
+		            		Region:'string',
+		            		Phone:'string',
+		            		Skills:'string',
+		            		'Web Design / Graphic Design':'string',
+		            		Teaching:'string',
+		            		Other:'string',
+		            		'Event Planning':'string',
+		            		'Orphan Database Management':'string',
+		            		Marketing:'string',
+		            		'Public Speaking':'string',
+		            		'Grant Writing':'string',
+		            		'Web Content Management':'string',
+		            		'Corporate/Legal':'string',
+		            	}
+		            }
+		            var xls = json2xls( items, options);
+					fs.writeFileSync('../data.xlsx', xls, 'binary');
+		                       
+		        });
+		        
+		    });         
+		});
+	}
+}
 
 // Capitalize each key of the json for better readability
-function capitalize_keys (obj) {
+function capitalizeKeys(obj) {
 	for(var i = 0; i<obj.length;i++) {
 
 	    var a = obj[i];
@@ -54,7 +82,7 @@ function capitalize_keys (obj) {
 }
 
 // Get interests in form of string or array b y keyword 'interests' and 'volenteerInterests' and spread it out in excel by interest having value Y or blank
-function map_interests(db_user) {
+function mapInterests(db_user) {
 	
 	if ('interests' in db_user && typeof db_user['interests'] === 'string' && db_user['interests'].length > 0) {
 		var interest_arr = db_user['interests'].split(',');
@@ -82,7 +110,7 @@ function map_interests(db_user) {
 						'Marketing', 
 						'Public Speaking',
 						'Grant Writing',
-						'Graphic Design / Web design',
+						'Web Design / Graphic Design',
 						'Web Content Management',
 						'Corporate/Legal',
 						]
@@ -102,5 +130,5 @@ function map_interests(db_user) {
 
 	db_user['mapped_interest'] = mapped_interest;
 	return db_user;
-} 
+}
 

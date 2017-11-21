@@ -1,3 +1,4 @@
 npm install
 npm start
-Check data excel file created in excel-exporter dir
+Go to localhost:3000/download
+Check data excel file downloaded in browser
